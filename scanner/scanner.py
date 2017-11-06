@@ -1,7 +1,7 @@
 """Scans input files for tokens"""
 import re
 
-from tokens import ALL_TOKENS
+from tokens import LEXICALLY_DISTINCT_TOKENS, KEYWORD_TOKENS
 
 
 def tokenize(file_text):
@@ -9,25 +9,34 @@ def tokenize(file_text):
 
     text_all_caps = file_text.upper()
 
-    pattern = re.compile(make_regex_string(ALL_TOKENS))
+    lexical_re = re.compile(make_regex_string(LEXICALLY_DISTINCT_TOKENS))
+    keyword_re = re.compile(make_regex_string(KEYWORD_TOKENS))
 
     tokens = []
     pos = 0
 
-    while 1:
-        m = pattern.match(text_all_caps, pos)
-        if pos == len(text_all_caps):
-            break
+    while pos < len(text_all_caps):
+        lexical_match = lexical_re.match(text_all_caps, pos)
 
-        token_type = ALL_TOKENS[m.lastindex - 1][0]
-        token_text = str(m.group(m.lastindex))
+        token_type = LEXICALLY_DISTINCT_TOKENS[lexical_match.lastindex - 1][0]
+        token_text = str(lexical_match.group(lexical_match.lastindex))
 
         if token_type == "no_match":
-            raise RuntimeError("Lexical error when scanning assembly. No match for \"" + token_text + "\"")
+            raise RuntimeError("Lexical error when scanning assembly. No match for \"" + \
+            token_text + "\"")
+
+        elif token_type == "symbol":
+            # check if text is keyword
+            keyword_match = keyword_re.match(token_text, 0)
+            if keyword_match and keyword_match.end() == len(token_text):
+                token_type = KEYWORD_TOKENS[keyword_match.lastindex - 1][0]
+
+            tokens.append((token_type, token_text))
+
         elif token_type != "whitespace" and token_type != "comment":
             tokens.append((token_type, token_text))
 
-        pos = m.end()
+        pos = lexical_match.end()
 
     return tokens
 
