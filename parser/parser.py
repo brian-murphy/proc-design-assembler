@@ -1,7 +1,10 @@
 """This module handles parsing the assembly into an intermediate representation
 that can be used to generate machine code."""
-from token_types import RRR_INSTRUCTIONS, IRR_INSTRUCTIONS, IR_INSTRUCTIONS, I_PARENR_R_INSTRUCTIONS, \
-I_INSTRUCTIONS, RR_INSTRUCTIONS, I_PARENR_INSTRUCTIONS, NO_ARG_INSTRUCTIONS, REGS
+from instruction_formats import RRR_INSTRUCTIONS, IRR_INSTRUCTIONS, IR_INSTRUCTIONS, I_PARENR_R_INSTRUCTIONS, \
+I_INSTRUCTIONS, RR_INSTRUCTIONS, I_PARENR_INSTRUCTIONS, NO_ARG_INSTRUCTIONS
+
+REGS = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", \
+        "R13", "R14", "R15"]
 
 class Parser:
 
@@ -229,6 +232,9 @@ class Parser:
         for i in range(self.parse_index - span, self.parse_index + span):
             if i > 0 and i < len(tokens):
                 print tokens[i][0], tokens[i][1]
+
+    def second_pass(self):
+
 
 
 def assert_commas(*comma_tokens):
