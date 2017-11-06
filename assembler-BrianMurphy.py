@@ -14,9 +14,10 @@ def main():
 
     parser = Parser(tokens)
 
-    (instructions, symbols) = parser.parse()
+    instructions = parser.parse()
 
-    print instructions, symbols
+    for addr in sorted(instructions.iterkeys()):
+        print addr, instructions[addr]
 
 
 if __name__ == '__main__':

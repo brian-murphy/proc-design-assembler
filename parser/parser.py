@@ -1,7 +1,11 @@
 """This module handles parsing the assembly into an intermediate representation
 that can be used to generate machine code."""
+from numbers import Number
+
 from instruction_formats import RRR_INSTRUCTIONS, IRR_INSTRUCTIONS, IR_INSTRUCTIONS, I_PARENR_R_INSTRUCTIONS, \
 I_INSTRUCTIONS, RR_INSTRUCTIONS, I_PARENR_INSTRUCTIONS, NO_ARG_INSTRUCTIONS
+
+from code_generator.instruction_types import BRANCH_INSTRUCTIONS
 
 REGS = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", \
         "R13", "R14", "R15"]
@@ -38,8 +42,9 @@ class Parser:
         self.current_address = 0x0
 
         self.first_pass(self.tokens)
+        self.second_pass()
 
-        return (self.instructions, self.symbols)
+        return self.instructions
 
 
     def first_pass(self, tokens):
@@ -225,7 +230,7 @@ class Parser:
             raise RuntimeError("imm must be a number or a label")
 
     def no_arg_instruction(self, tokens):
-        self.add_word((tokens[self.parse_index][0]))
+        self.add_word((tokens[self.parse_index][0],))
         self.parse_index += 1
 
     def print_token_stream(self, tokens, span):
@@ -233,7 +238,30 @@ class Parser:
             if i > 0 and i < len(tokens):
                 print tokens[i][0], tokens[i][1]
 
+
     def second_pass(self):
+        """Iterates over the parsed instructions and replaces symbolic
+        immediate values with the correct numeric ones."""
+        complete_instructions = {}
+
+        for address in self.instructions.iterkeys():
+            instruction = self.instructions[address]
+            instruction_type = instruction[0]
+            for i in range(1, len(instruction)):
+                if not instruction[i] in REGS and not isinstance(instruction[i], Number):
+                    instr_list = list(instruction)
+                    instr_list[i] = self.symbol_imm_value(instruction_type, instruction[i], address)
+                    complete_instructions[address] = tuple(instr_list)
+
+        for address in complete_instructions.iterkeys():
+            self.instructions[address] = complete_instructions[address]
+
+    def symbol_imm_value(self, instruction_type, symbol, instruction_address):
+        symbol_value = self.symbols[symbol]
+        if instruction_type in BRANCH_INSTRUCTIONS:
+            return ((symbol_value - instruction_address) / 4) - 1
+        else:
+            return symbol_value
 
 
 
