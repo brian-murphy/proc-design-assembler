@@ -5,7 +5,7 @@ scanner needs implement longest-match-first, so some tokens are outside
 their category"""
 
 ALL_TOKENS = [("whitespace", "\s"),
-              ("comment", ";.*$"),
+              ("comment", ";.*"),
 
               #directives
               (".NAME", ".NAME"),
@@ -99,6 +99,6 @@ ALL_TOKENS = [("whitespace", "\s"),
               ("R15", "(?:R15)|(?:RA)"),
 
               #numbers, symbols, and catch-all
-              ("number", "(?:0x[0-9A-Fa-f]{1,})|(?:-?[1-9][0-9]*)|(?:0)"),
+              ("number", "(?:0[xX][0-9A-Fa-f]{1,})|(?:-?[1-9][0-9]*)|(?:0)"),
               ("symbol", "[a-zA-Z]{1,}"),
               ("no_match", ".{1,}")]
