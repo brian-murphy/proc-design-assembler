@@ -163,11 +163,11 @@ class Parser:
         else:
             raise RuntimeError("imm must be a number or a label")
         if instr_name == "BLE":
-            self.add_word(("LTE", r1_token[0], r2_token[0], "R9"))
-            self.add_word(("BNEZ", imm_value, "R9"))
+            self.add_word(("LTE", r1_token[0], r2_token[0], "R6"))
+            self.add_word(("BNEZ", imm_value, "R6"))
         elif instr_name == "BGE":
-            self.add_word(("GTE", r1_token[0], r2_token[0], "R9"))
-            self.add_word(("BNEZ", imm_value, "R9"))
+            self.add_word(("GTE", r1_token[0], r2_token[0], "R6"))
+            self.add_word(("BNEZ", imm_value, "R6"))
         else:
             self.add_word((instr_name, imm_value, r1_token[0], r2_token[0]))
         self.parse_index += 6
@@ -216,7 +216,7 @@ class Parser:
         else:
             raise RuntimeError("imm must be a number or a label")
         if instr_name == "BR":
-            self.add_word(("BEQ", imm_value, "R9", "R9"))
+            self.add_word(("BEQ", imm_value, "R6", "R6"))
         else:
             self.add_word((instr_name, imm_value))
         self.parse_index += 2
