@@ -13,17 +13,21 @@ def main():
     assembly_text = input_file.read()
     input_file.close()
 
-    tokens = tokenize(assembly_text)
+    try:
+        tokens = tokenize(assembly_text)
 
-    parser = Parser(tokens)
-    instructions = parser.parse()
+        parser = Parser(tokens)
+        instructions = parser.parse()
 
-    code_gen = CodeGenerator(instructions)
-    mif_text = code_gen.mif_format()
+        code_gen = CodeGenerator(instructions)
+        mif_text = code_gen.mif_format()
 
-    output_file = open(output_file_name, "w")
-    output_file.write(mif_text)
-    output_file.close()
+        output_file = open(output_file_name, "w")
+        output_file.write(mif_text)
+        output_file.close()
+
+    except RuntimeError as err:
+        print err.message
 
 
 

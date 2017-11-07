@@ -94,7 +94,8 @@ class Parser:
                 self.no_arg_instruction(tokens)
 
             else:
-                raise RuntimeError("unrecognized way to start a statement")
+                raise RuntimeError("unrecognized way to start a statement on line " + \
+                str(tokens[self.parse_index][2]))
 
 
     def orig(self, tokens):
@@ -104,7 +105,8 @@ class Parser:
             self.current_address = parse_int(next_token_value)
             self.parse_index += 2
         else:
-            raise RuntimeError(".ORIG statement must be followed by a number")
+            raise RuntimeError(".ORIG statement must be followed by a number on " + \
+            "line " + str(tokens[self.parse_index][2]))
 
     def name(self, tokens):
         symbol_token = tokens[self.parse_index + 1]
@@ -114,7 +116,8 @@ class Parser:
             self.add_symbol(symbol_token[1], parse_int(value_token[1]))
             self.parse_index += 4
         else:
-            raise RuntimeError(".NAME statement must be followed by \"=<number>\"")
+            raise RuntimeError(".NAME statement must be followed by \"=<number>\"" + \
+            " on line " + str(tokens[self.parse_index][2]))
 
     def word(self, tokens):
         next_token_type = tokens[self.parse_index + 1][0]
@@ -126,7 +129,8 @@ class Parser:
             self.add_word((".WORD", next_token_value))
             self.parse_index += 2
         else:
-            raise RuntimeError(".WORD statement must be followed by a number or a symbol")
+            raise RuntimeError(".WORD statement must be followed by a number or " + \
+            "a symbol on line " + str(tokens[self.parse_index][2]))
 
     def label(self, tokens):
         next_token_type = tokens[self.parse_index + 1][0]
@@ -136,23 +140,26 @@ class Parser:
             self.parse_index += 2
         else:
             raise RuntimeError("unexpected symbol \"" + label_name + \
-            "\". Labels should be followed by :")
+            "\". Labels should be followed by \":\" on line " + \
+            str(tokens[self.parse_index][2]))
 
     def rrr_instruction(self, tokens):
-        assert_commas(tokens[self.parse_index + 2], tokens[self.parse_index + 4])
+        line_number = tokens[self.parse_index][2]
+        assert_commas(line_number, tokens[self.parse_index + 2], tokens[self.parse_index + 4])
         r1_token = tokens[self.parse_index + 1]
         r2_token = tokens[self.parse_index + 3]
         r3_token = tokens[self.parse_index + 5]
-        assert_regs(r1_token, r2_token, r3_token)
+        assert_regs(line_number, r1_token, r2_token, r3_token)
         instr_name = tokens[self.parse_index][0]
         self.add_word((instr_name, r1_token[0], r2_token[0], r3_token[0]))
         self.parse_index += 6
 
     def irr_instruction(self, tokens):
-        assert_commas(tokens[self.parse_index + 2], tokens[self.parse_index + 4])
+        line_number = tokens[self.parse_index][2]
+        assert_commas(line_number, tokens[self.parse_index + 2], tokens[self.parse_index + 4])
         r1_token = tokens[self.parse_index + 3]
         r2_token = tokens[self.parse_index + 5]
-        assert_regs(r1_token, r2_token)
+        assert_regs(line_number, r1_token, r2_token)
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
         imm_value = None
@@ -161,7 +168,8 @@ class Parser:
         elif imm_token[0] == "symbol":
             imm_value = imm_token[1]
         else:
-            raise RuntimeError("imm must be a number or a label")
+            raise RuntimeError("imm must be a number or a label on line " + \
+            str(line_number))
         if instr_name == "BLE":
             self.add_word(("LTE", r1_token[0], r2_token[0], "R6"))
             self.add_word(("BNEZ", imm_value, "R6"))
@@ -174,9 +182,10 @@ class Parser:
 
 
     def ir_instruction(self, tokens):
-        assert_commas(tokens[self.parse_index + 2])
+        line_number = tokens[self.parse_index][2]
+        assert_commas(line_number, tokens[self.parse_index + 2])
         r1_token = tokens[self.parse_index + 3]
-        assert_regs(r1_token)
+        assert_regs(line_number, r1_token)
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
         if imm_token[0] == "number":
@@ -186,14 +195,16 @@ class Parser:
             self.add_word((instr_name, imm_token[1], r1_token[0]))
             self.parse_index += 4
         else:
-            raise RuntimeError("imm must be a number or a label")
+            raise RuntimeError("imm must be a number or a label on line " + \
+            str(line_number))
 
     def i_parenr_r_instruction(self, tokens):
-        assert_parens(tokens[self.parse_index + 2], tokens[self.parse_index + 4])
-        assert_commas(tokens[self.parse_index + 5])
+        line_number = tokens[self.parse_index][2]
+        assert_parens(line_number, tokens[self.parse_index + 2], tokens[self.parse_index + 4])
+        assert_commas(line_number, tokens[self.parse_index + 5])
         r1_token = tokens[self.parse_index + 3]
         r2_token = tokens[self.parse_index + 6]
-        assert_regs(r1_token, r2_token)
+        assert_regs(line_number, r1_token, r2_token)
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
         if imm_token[0] == "number":
@@ -203,7 +214,8 @@ class Parser:
             self.add_word((instr_name, imm_token[1], r1_token[0], r2_token[0]))
             self.parse_index += 7
         else:
-            raise RuntimeError("imm must be a number or a label")
+            raise RuntimeError("imm must be a number or a label on line " + \
+            str(line_number))
 
     def i_instruction(self, tokens):
         instr_name = tokens[self.parse_index][0]
@@ -214,7 +226,8 @@ class Parser:
         elif imm_token[0] == "symbol":
             imm_value = imm_token[1]
         else:
-            raise RuntimeError("imm must be a number or a label")
+            raise RuntimeError("imm must be a number or a label on line " + \
+            str(tokens[self.parse_index][2]))
         if instr_name == "BR":
             self.add_word(("BEQ", imm_value, "R6", "R6"))
         else:
@@ -222,10 +235,11 @@ class Parser:
         self.parse_index += 2
 
     def rr_instruction(self, tokens):
-        assert_commas(tokens[self.parse_index + 2])
+        line_number = tokens[self.parse_index][2]
+        assert_commas(line_number, tokens[self.parse_index + 2])
         r1_token = tokens[self.parse_index + 1]
         r2_token = tokens[self.parse_index + 3]
-        assert_regs(r1_token, r2_token)
+        assert_regs(line_number, r1_token, r2_token)
         instr_name = tokens[self.parse_index][0]
         if instr_name == "NOT":
             self.add_word(("NAND", r1_token[0], r1_token[0], r2_token[0]))
@@ -234,9 +248,10 @@ class Parser:
         self.parse_index += 4
 
     def i_parenr_instruction(self, tokens):
-        assert_parens(tokens[self.parse_index + 2], tokens[self.parse_index + 4])
+        line_number = tokens[self.parse_index][2]
+        assert_parens(line_number, tokens[self.parse_index + 2], tokens[self.parse_index + 4])
         r1_token = tokens[self.parse_index + 3]
-        assert_regs(r1_token)
+        assert_regs(line_number, r1_token)
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
         imm_value = None
@@ -245,7 +260,8 @@ class Parser:
         elif imm_token[0] == "symbol":
             imm_value = imm_token[1]
         else:
-            raise RuntimeError("imm must be a number or a label")
+            raise RuntimeError("imm must be a number or a label on line " + \
+            str(line_number))
         if instr_name == "CALL":
             self.add_word(("JAL", imm_value, r1_token[0], "R15"))
         elif instr_name == "JMP":
@@ -295,20 +311,23 @@ class Parser:
 
 
 
-def assert_commas(*comma_tokens):
+def assert_commas(line_number, *comma_tokens):
     for token in comma_tokens:
         if token[0] != ",":
-            raise RuntimeError("operands must be separated by commas")
+            raise RuntimeError("operands must be separated by commas on line " + \
+            str(line_number))
 
-def assert_regs(*reg_tokens):
+def assert_regs(line_number, *reg_tokens):
     for token in reg_tokens:
         if not token[0] in REGS:
-            raise RuntimeError("operands must be regs")
+            raise RuntimeError("operands must be regs on line " + \
+            str(line_number))
 
-def assert_parens(*paren_tokens):
+def assert_parens(line_number, *paren_tokens):
     for token in paren_tokens:
         if token[0] != "(" and token[0] != ")":
-            raise RuntimeError("index reg must be wrapped in parens")
+            raise RuntimeError("index reg must be wrapped in parens on line" + \
+            str(line_number))
 
 def parse_int(int_string):
     if int_string.find("0x") != -1 or int_string.find("0X") != -1:

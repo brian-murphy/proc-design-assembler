@@ -12,6 +12,7 @@ def tokenize(file_text):
     lexical_re = re.compile(make_regex_string(LEXICALLY_DISTINCT_TOKENS))
     keyword_re = re.compile(make_regex_string(KEYWORD_TOKENS))
 
+    line_number = 1
     tokens = []
     pos = 0
 
@@ -22,8 +23,12 @@ def tokenize(file_text):
         token_text = str(lexical_match.group(lexical_match.lastindex))
 
         if token_type == "no_match":
-            raise RuntimeError("Lexical error when scanning assembly. No match for \"" + \
-            token_text + "\"")
+            raise RuntimeError("Lexical error when on line " + str(line_number) + \
+            ". No match for \"" + token_text + "\"")
+
+        elif token_type == "whitespace":
+            if token_text == "\n":
+                line_number += 1
 
         elif token_type == "symbol":
             # check if text is keyword
@@ -31,10 +36,10 @@ def tokenize(file_text):
             if keyword_match and keyword_match.end() == len(token_text):
                 token_type = KEYWORD_TOKENS[keyword_match.lastindex - 1][0]
 
-            tokens.append((token_type, token_text))
+            tokens.append((token_type, token_text, line_number))
 
         elif token_type != "whitespace" and token_type != "comment":
-            tokens.append((token_type, token_text))
+            tokens.append((token_type, token_text, line_number))
 
         pos = lexical_match.end()
 
