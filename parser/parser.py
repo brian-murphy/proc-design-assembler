@@ -10,6 +10,8 @@ from code_generator.instruction_types import BRANCH_INSTRUCTIONS
 REGS = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10", "R11", "R12", \
         "R13", "R14", "R15"]
 
+PSEUDO_INSTRUCTIONS = ["BR", "NOT", "BLE", "BGE", "CALL", "RET", "JMP"]
+
 class Parser:
 
     def __init__(self, tokens):
@@ -49,7 +51,8 @@ class Parser:
 
     def first_pass(self, tokens):
         """iterates over the list of tokens and identifies instructions and symbols.
-        Both of these data structures should be populated when this returns."""
+        Both of these data structures should be populated when this returns. Also
+        converts pseudo-instructions to machine instructions"""
 
         while self.parse_index < len(tokens):
             token_type = tokens[self.parse_index][0]
@@ -152,14 +155,23 @@ class Parser:
         assert_regs(r1_token, r2_token)
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
+        imm_value = None
         if imm_token[0] == "number":
-            self.add_word((instr_name, parse_int(imm_token[1]), r1_token[0], r2_token[0]))
-            self.parse_index += 6
+            imm_value = parse_int(imm_token[1])
         elif imm_token[0] == "symbol":
-            self.add_word((instr_name, imm_token[1], r1_token[0], r2_token[0]))
-            self.parse_index += 6
+            imm_value = imm_token[1]
         else:
             raise RuntimeError("imm must be a number or a label")
+        if instr_name == "BLE":
+            self.add_word(("LTE", r1_token[0], r2_token[0], "R9"))
+            self.add_word(("BNEZ", imm_value, "R9"))
+        elif instr_name == "BGE":
+            self.add_word(("GTE", r1_token[0], r2_token[0], "R9"))
+            self.add_word(("BNEZ", imm_value, "R9"))
+        else:
+            self.add_word((instr_name, imm_value, r1_token[0], r2_token[0]))
+        self.parse_index += 6
+
 
     def ir_instruction(self, tokens):
         assert_commas(tokens[self.parse_index + 2])
@@ -196,14 +208,18 @@ class Parser:
     def i_instruction(self, tokens):
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
+        imm_value = None
         if imm_token[0] == "number":
-            self.add_word((instr_name, parse_int(imm_token[1])))
-            self.parse_index += 2
+            imm_value = parse_int(imm_token[1])
         elif imm_token[0] == "symbol":
-            self.add_word((instr_name, imm_token[1]))
-            self.parse_index += 2
+            imm_value = imm_token[1]
         else:
             raise RuntimeError("imm must be a number or a label")
+        if instr_name == "BR":
+            self.add_word(("BEQ", imm_value, "R9", "R9"))
+        else:
+            self.add_word((instr_name, imm_value))
+        self.parse_index += 2
 
     def rr_instruction(self, tokens):
         assert_commas(tokens[self.parse_index + 2])
@@ -211,7 +227,10 @@ class Parser:
         r2_token = tokens[self.parse_index + 3]
         assert_regs(r1_token, r2_token)
         instr_name = tokens[self.parse_index][0]
-        self.add_word((instr_name, r1_token[0], r2_token[0]))
+        if instr_name == "NOT":
+            self.add_word(("NAND", r1_token[0], r1_token[0], r2_token[0]))
+        else:
+            self.add_word((instr_name, r1_token[0], r2_token[0]))
         self.parse_index += 4
 
     def i_parenr_instruction(self, tokens):
@@ -220,17 +239,28 @@ class Parser:
         assert_regs(r1_token)
         instr_name = tokens[self.parse_index][0]
         imm_token = tokens[self.parse_index + 1]
+        imm_value = None
         if imm_token[0] == "number":
-            self.add_word((instr_name, parse_int(imm_token[1]), r1_token[0]))
-            self.parse_index += 5
+            imm_value = parse_int(imm_token[1])
         elif imm_token[0] == "symbol":
-            self.add_word((instr_name, imm_token[1], r1_token[0]))
-            self.parse_index += 5
+            imm_value = imm_token[1]
         else:
             raise RuntimeError("imm must be a number or a label")
+        if instr_name == "CALL":
+            self.add_word(("JAL", imm_value, r1_token[0], "R15"))
+        elif instr_name == "JMP":
+            self.add_word(("JAL", imm_value, r1_token[0], "R9"))
+        else:
+            self.add_word((instr_name, imm_token[1], r1_token[0]))
+        self.parse_index += 5
+
 
     def no_arg_instruction(self, tokens):
-        self.add_word((tokens[self.parse_index][0],))
+        instr_name = tokens[self.parse_index][0]
+        if instr_name == "RET":
+            self.add_word(("JAL", "R15", "R9"))
+        else:
+            self.add_word((instr_name,))
         self.parse_index += 1
 
     def print_token_stream(self, tokens, span):
