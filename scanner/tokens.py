@@ -98,7 +98,7 @@ KEYWORD_TOKENS = [("R13","FP"),# need to match FP before instruction F
             ("NOT","NOT"),
             ("BLE","BLE"),
             ("BGE","BGE"),
-            ("BR","(?:B)|(?:BR)"),
+            ("BR","(?:BR)|(?:B)"),
             ("CALL","CALL"),
             ("RET","RET"),
             ("JMP","JMP"),
