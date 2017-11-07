@@ -12,3 +12,7 @@ CMPI_INSTRUCTIONS = ["FI", "EQI", "LTI", "LTEI", "TI", "NEI", "GTEI", "GTI"]
 
 BRANCH_INSTRUCTIONS = ["BF", "BEQ", "BLT", "BLTE", "BEQZ", "BLTZ", "BLTEZ", "BT", "BNE", "BGTE", \
 "BGT", "BNEZ", "BGTEZ", "BGTZ", "JAL"]
+
+IRR_BRANCHES = ["BF", "BEQ", "BLT", "BLTE", "BT", "BNE", "BGTE", "BGT", "JAL"]
+
+IR_BRANCHES = ["BEQZ", "BLTZ", "BLTEZ", "BNEZ", "BGTEZ", "BGTZ"]

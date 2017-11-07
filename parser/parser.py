@@ -258,7 +258,7 @@ class Parser:
     def no_arg_instruction(self, tokens):
         instr_name = tokens[self.parse_index][0]
         if instr_name == "RET":
-            self.add_word(("JAL", "R15", "R9"))
+            self.add_word(("JAL", 0, "R15", "R9"))
         else:
             self.add_word((instr_name,))
         self.parse_index += 1
