@@ -1,0 +1,14 @@
+
+.ORIG 0x40
+
+            SUB R0,R0,R0            ; clear R0 (count)
+            SUB R1,R1,R1            ; clear R1  (max count)
+            ADDI 7,R1,R1            ; max count = 7
+
+Loop:
+            BEQ Stop,R0,R1          ; if (count == max count) stop
+            ADDI 1,R0,R0            ; count++
+            BEQ Loop,R0,R0          ; goto Loop
+
+Stop:
+            BEQ Stop,R0,R0          ; spin

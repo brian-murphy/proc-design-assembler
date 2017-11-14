@@ -86,7 +86,7 @@ class CodeGenerator:
         return "END;\n"
 
 def to_hex(number):
-    return hex(number)[2:]
+    return hex(number & 0xffffffff)[2:]
 
 def make_alur_fn_and_op(instr_name):
     return functions[instr_name] | opcodes.ALUR

@@ -1,0 +1,44 @@
+.NAME fibIndex=5    ; how many fibonnacci numbers to calculate
+
+.ORIG 0x40
+
+            SUB S0,S0,S0        ; clear S0
+            SUB S1,S1,S1        ; clear S1
+            SUB T0,T0,T0        ; clear T0
+
+            ADDI fibIndex,S0,A0 ; A0 holds the stopping index
+            ADDI 1,S0,A1        ; A1 hold the current index
+
+            ADDI 1,S0,S0        ; fib(0) = 1
+            ADDI 1,S1,S1        ; fib(1) = 1
+
+            BLTE ReturnOne,A0,A1; if (fibIndex <= currentIndex) return 1
+
+; This is the main loop of the program. It is pipelined so that we can
+; alternate between using S0 and S1 as the destination register for
+; the add operation.
+Loop:
+            ADDI 1,A1,A1        ; increment currentIndex
+            ADD S0,S1,S0        ; fib(n)
+            BEQ ReturnSZero,A0,A1 ; return S0 if index = target
+
+            ADDI 1,A1,A1        ; increment currentIndex
+            ADD S0,S1,S1        ; fib(n+1)
+            BEQ returnSOne,A0,A1; return S1 if index = target
+
+            BEQ Loop,RV,RV      ; goto top of loop
+
+
+ReturnSZero:
+            ADD T0,S0,RV        ; RV = S0
+            BEQ Return,RV,RV    ; goto return
+
+ReturnSOne:
+            ADD T0,S1,RV        ; RV = S1
+            BEQ Return,RV,RV    ; goto return
+
+ReturnOne:
+            EQ RV,RV,RV         ; RV = 1
+
+Return:
+            RET
