@@ -8,6 +8,7 @@ import opcodes
 WORD_WIDTH = 32
 RAM_DEPTH = 2048
 IMM_MASK = 0b111111111111111100000000
+MVHI_MASK = 0xFFFF0000
 
 class CodeGenerator:
 
@@ -116,7 +117,7 @@ def make_irr_args(instruction):
 def make_mvhi_args(instruction):
     imm = instruction[1]
     r_1 = encode_reg(instruction[2])
-    return ((imm << 8) & IMM_MASK) | (r_1 << 4)
+    return ((imm >> 8) & MVHI_MASK) | r_1
 
 def make_loadstore_fn_and_op(instr_name):
     operation = None
@@ -132,7 +133,10 @@ def make_loadstore_args(instruction):
     imm = instruction[1]
     r_1 = encode_reg(instruction[2])
     r_2 = encode_reg(instruction[3])
-    return ((imm << 8) & IMM_MASK) | (r_1 << 4) | r_2
+    if instruction[0] == "LW":
+        return ((imm << 8) & IMM_MASK) | (r_1 << 4) | r_2
+    else:
+        return ((imm << 8) & IMM_MASK) | (r_2 << 4) | r_1
 
 def make_cmpr_fn_and_op(instr_name):
     return functions[instr_name] | opcodes.ALUR

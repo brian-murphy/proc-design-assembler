@@ -1,0 +1,19 @@
+.NAME IOBASE=0xf0000000
+.NAME DISPLAY=0x0
+.NAME LEDS=0x00000004
+.NAME KEYS=0x00000010
+.NAME SWITCHES=0x00000014
+
+.ORIG 0x40
+
+                SUB R0,R0,R0            ; clear R0
+                MVHI IOBASE,R1          ; R1 = io base addr
+
+Poll:
+                LW SWITCHES(R1),R2      ;
+                SW DISPLAY(R1),R2       ; display = switch values
+
+                LW KEYS(R1),R2          ;
+                SW LEDS(R1),R2          ; leds = key values
+
+                BEQ Poll,R0,R0          ; loop indefinately

@@ -12,15 +12,15 @@
         ADDI 15,R0,R2           ; R2 = 15
 
         SW DISPLAY(R1), R2      ; store 0xf to DISPLAY
-        SW KEYS(R1), R2         ; store 0xf to KEYS
+        SW LEDS(R1), R2         ; store 0xf to KEYS
 
         LW SWITCHES(R1), R3     ; load switch input into R3
         LW KEYS(R1), R4         ; load keys input into R4
 
 
         SW 0x0(R0), R3          ; store switch input into MEM[0]
-        SW 0x4(R0), R4          ; store key input into MEM[0]
+        SW 0x4(R0), R4          ; store key input into MEM[4]
 
 
-Spin:   BEQ Spin, R0, R0        ; spin on this address
+Spin:   JAL 0x19(R0), R5        ; spin on this address
 
