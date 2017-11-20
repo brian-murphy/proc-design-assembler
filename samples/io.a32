@@ -1,0 +1,26 @@
+.NAME IOBASE=0xf0000000
+.NAME DISPLAY=0x0
+.NAME LEDS=0x00000004
+.NAME KEYS=0x00000010
+.NAME SWITCHES=0x00000014
+
+.ORIG 0x40
+
+        SUB R0,R0,R0            ; clear R0
+        MVHI IOBASE, R1         ; base address for io
+
+        ADDI 15,R0,R2           ; R2 = 15
+
+        SW DISPLAY(R1), R2      ; store 0xf to DISPLAY
+        SW KEYS(R1), R2         ; store 0xf to KEYS
+
+        LW SWITCHES(R1), R3     ; load switch input into R3
+        LW KEYS(R1), R4         ; load keys input into R4
+
+
+        SW 0x0(R0), R3          ; store switch input into MEM[0]
+        SW 0x4(R0), R4          ; store key input into MEM[0]
+
+
+Spin:   BEQ Spin, R0, R0        ; spin on this address
+
