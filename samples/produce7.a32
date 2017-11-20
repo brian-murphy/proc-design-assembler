@@ -1,0 +1,7 @@
+.ORIG 0x40
+
+SUB R0, R0, R0
+
+ADDI 7, R0, R0
+
+Loop: BEQ Loop, R0, R0
