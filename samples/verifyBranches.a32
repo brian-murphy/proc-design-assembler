@@ -1,0 +1,97 @@
+.NAME IOBASE=0xf0000000
+.NAME DISPLAY=0x0
+.NAME LEDS=0x00000004
+.NAME KEYS=0x00000010
+.NAME SWITCHES=0x00000014
+
+; this test assumes that BR has already been verified
+
+.ORIG 0x40
+
+                SUB R0, R0, R0                  ; clear R0. R0 should always be zero
+
+                ; test BF
+                ADDI 0, R0, R15                 ; set error code
+                BF Error, R0, R0
+                ; should never branch. Fallthrough means Success
+
+
+                ; test BLT
+                ADDI 1, R0, R15                 ; set error code
+                ADDI -1, R0, R1
+                BLT Error, R0, R0
+                ; should only branch if R0 < R0. Fallthrough means Success
+                BLT TestBLTE, R0, R1
+                ; R1 < R0. Should branch
+                BR Error
+
+
+TestBLTE:
+                ADDI 2, R0, R15                 ; set error code
+                ADDI -1, R0, R1
+                BLTE Error, R1, R0
+                ; should only branch if R0 <= R1. Fallthrough means Success
+                BLTE BLTESuccess, R0, R1
+                ; R1 <= R0. Should branch
+                BR Error
+BLTESuccess:    BLTE TestBEQZ, R0, R0
+                ; R0 <= R0. Should branch
+                BR Error
+
+
+TestBEQZ:
+                ADDI 3, R0, R15                 ; set error code
+                ADDI 1, R0, R1
+                BEQZ Error, R1
+                ; should only branch if R1 == 0. Fallthrough means Success
+                BEQZ TestBLTZ, R0
+                ; R0 == 0. Should branch
+                BR Error
+
+
+TestBLTZ:
+                ADDI 4, R0, R15                 ; set error code
+                ADDI -1, R0, R1
+                BLTZ Error, R0
+                ; should only branch if R0 < 0. Fallthrough means Success
+                BLTZ TestBLTEZ, R1
+                ; R1 < 0. Should branch
+                BR Error
+
+
+TestBLTEZ:
+                ADDI 5, R0, R15                 ; set error code
+                ADDI 1, R0, R1
+                BLTEZ Error, R1
+                ; should only branch if R1 <=0. Fallthrough means Success
+                BLTEZ BLTEZSuccess, R0
+                ; R0 <= 0. Should branch
+                BR Error
+BLTEZSuccess:   ADDI -1, R0, R1
+                BLTEZ TestBT, R1
+                ; R1 <= 0. Should branch
+                BR Error
+
+
+TestBT:
+                ADDI 6, R0, R15                 ; set error code
+                BT Success, R1, R15
+                ; should always branch
+                BR Error
+
+
+Error:
+                MVHI IOBASE, R1                 ;
+                ADDI 0xE0, R0, R2               ;
+                OR R2, R15, R2                 ; R15 is has the failed test number
+                SW DISPLAY(R1), R2              ; write "E" and the test to the DISPLAY
+                BR Spin
+
+
+Success:        MVHI IOBASE, R1                 ;
+                ADDI 0x5, R0, R2                ;
+                SW DISPLAY(R1), R2              ; write "S" to the DISPLAY
+                BR Spin
+
+
+Spin:           BEQ Spin, R0, R0                ; halt
