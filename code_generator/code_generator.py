@@ -30,14 +30,15 @@ class CodeGenerator:
         noop_start = 0
         is_accumulating_noops = False
         for addr in range(0, RAM_DEPTH - 1, 4):
+            mif_addr = addr / 4
             if addr in instructions:
                 if is_accumulating_noops:
-                    self.write_noops(noop_start, addr - 1)
+                    self.write_noops(noop_start, mif_addr - 1)
                     is_accumulating_noops = False
-                self.write_word(addr, instructions[addr])
+                self.write_word(mif_addr, instructions[addr])
             else:
                 if not is_accumulating_noops:
-                    noop_start = addr
+                    noop_start = mif_addr
                     is_accumulating_noops = True
         if is_accumulating_noops:
             self.write_noops(noop_start, RAM_DEPTH - 1)
