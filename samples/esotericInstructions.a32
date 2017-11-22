@@ -1,0 +1,50 @@
+.NAME IOBASE=0xf0000000
+.NAME DISPLAY=0x0
+.NAME LEDS=0x00000004
+.NAME KEYS=0x00000010
+.NAME SWITCHES=0x00000014
+
+.NAME STORAGE=0x0
+
+.NAME MAKEFIVE=0x100
+
+.ORIG 0x40
+                SUB R0, R0, R0                  ; clear R0
+                NOT R0, R1                      ; R1 = -1
+
+                BLE Error, R1, R0               ; if R0 <= R1 goto error
+                BGE CallFunc, R1, R0            ; if R0 >= R1
+
+
+
+Error:
+                MVHI IOBASE, R1                 ;
+                ADDI 0xE, R0, R2                ;
+                SW DISPLAY(R1), R2              ; write "E" to the DISPLAY
+                BR Halt
+
+
+CallFunc:       ADDI 5, R0, R1
+                SW STORAGE(R0), R1
+                EQI 5, R1, R3
+                ADDI MAKEFIVE, R0, R1
+                CALL 0(R1)
+
+                ADDI 5, R0, R1
+                BNE Error, R1, R3
+
+                MVHI IOBASE, R1
+                SW LEDS(R1), R3                 ; write argument to leds
+                BR Halt
+
+
+.ORIG 0x100     ; MAKEFIVE
+                ADDI 1, R0, R1
+                BNE Error, R3, R1
+                LW STORAGE(R0), R3
+                RET
+
+Halt:           BR Halt
+
+
+
